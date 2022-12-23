@@ -1,9 +1,9 @@
-package org.example;
-
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.util.Random;
 
 public class GameField extends JPanel implements ActionListener {
@@ -14,8 +14,8 @@ public class GameField extends JPanel implements ActionListener {
     private Image apple;
     private int appleX;
     private int appleY;
-    private int[] x = new int[ALL_DOTS];
-    private int[] y = new int[ALL_DOTS];
+    private final int[] x = new int[ALL_DOTS];
+    private final int[] y = new int[ALL_DOTS];
     private int dots;
     private Timer timer;
     private boolean left = false;
@@ -25,12 +25,12 @@ public class GameField extends JPanel implements ActionListener {
     private boolean inGame = true;
 
 
-
     public GameField() {
         setBackground(Color.black);
         loadImages();
         initGame();
-
+        addKeyListener(new FieldKeyListener());
+        setFocusable(true);
     }
 
     public void initGame() {
@@ -51,7 +51,7 @@ public class GameField extends JPanel implements ActionListener {
 
     public void loadImages() {
         ImageIcon iia = new ImageIcon("apple.png");
-        dot = iia.getImage();
+        apple = iia.getImage();
         ImageIcon iid = new ImageIcon("dot.png");
         dot = iid.getImage();
     }
@@ -83,6 +83,10 @@ public class GameField extends JPanel implements ActionListener {
             for (int i = 0; i < dots; i++) {
                 g.drawImage(dot, x[i], y[i], this);
             }
+        } else {
+            String text = "Game Over";
+            g.setColor(Color.white);
+            g.drawString(text, 125, SIZE / 2);
         }
 
     }
@@ -90,9 +94,66 @@ public class GameField extends JPanel implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         if (inGame) {
+            checkApple();
+            checkCollisions();
             move();
         }
         repaint();
 
+    }
+
+    private void checkCollisions() {
+        for (int i = dots; i > 0; i--) {
+            if (i > 4 && x[0] == x[i] && y[0] == y[i]) {
+                inGame = false;
+            }
+        }
+        if (x[0] > SIZE) {
+            inGame = false;
+        }
+        if (x[0] < 0) {
+            inGame = false;
+        }
+        if (y[0] > SIZE) {
+            inGame = false;
+        }
+        if (y[0] < 0) {
+            inGame = false;
+        }
+    }
+
+    private void checkApple() {
+        if (x[0] == appleX && y[0] == appleY) {
+            dots++;
+            createApple();
+        }
+    }
+
+    class FieldKeyListener extends KeyAdapter {
+        @Override
+        public void keyPressed(KeyEvent e) {
+            super.keyPressed(e);
+            int key = e.getKeyCode();
+            if (key == KeyEvent.VK_LEFT && !right) {
+                left = true;
+                up = false;
+                down = false;
+            }
+            if (key == KeyEvent.VK_UP && !down) {
+                up = true;
+                left = false;
+                right = false;
+            }
+            if (key == KeyEvent.VK_RIGHT && !left) {
+                right = true;
+                up = false;
+                down = false;
+            }
+            if (key == KeyEvent.VK_DOWN && !up) {
+                down = true;
+                left = false;
+                right = false;
+            }
+        }
     }
 }
